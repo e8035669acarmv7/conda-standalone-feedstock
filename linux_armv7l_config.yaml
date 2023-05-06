@@ -1,0 +1,10 @@
+cdt_name:
+- cos7
+cdt_arch:
+- armv7l
+channel_sources:
+- conda-forge
+channel_targets:
+- conda-forge main
+target_platform:
+- linux-armv7l
