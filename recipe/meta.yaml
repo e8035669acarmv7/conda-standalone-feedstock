@@ -1,54 +1,57 @@
-{% set version = "23.7.3" %}
-{% set conda_version = "23.7.3" %}
-{% set conda_libmamba_solver_version = "23.7.0" %}
-{% set libmambapy_version = "1.4.2" %}
-{% set constructor_version = "3.4.5" %}
-{% set python_version = "3.9.15" %}
+{% set version = "24.5.0" %}
+{% set conda_libmamba_solver_version = "24.1.0" %}
+{% set libmambapy_version = "1.5.8" %}
+{% set constructor_version = "3.8.0" %}
+{% set menuinst_lower_bound = "2.1.1" %}
+{% set python_version = "3.11.9" %}
 
 package:
   name: conda-standalone
   version: {{ version }}
 
 source:
-  - url: https://github.com/conda/conda-standalone/archive/{{ conda_version }}.tar.gz
-    sha256: 0912e072354038a7a2253b5f700c2aa9c5dbe031815859a4a3a5d074550bd971
+  - url: https://github.com/conda/conda-standalone/archive/{{ version }}.tar.gz
+    sha256: 73d059cf28b02ff7424177abcecd0084111da3e75aec8c5dab1af81261120a0d
 
-  - url: https://github.com/conda/conda/archive/{{ conda_version }}.tar.gz
-    sha256: 569d0a441f40fa117cc38ca1dd7fed80c235b5e1dc736b7f149f813ee1c014b8
+  - url: https://github.com/conda/conda/archive/{{ version }}.tar.gz
+    sha256: 4a571495f08d49127b9ae28d8b8cb30bb055d061c189d8ef8c5682b26b6bde24
     folder: conda_src
     patches:
       - "{{ SRC_DIR | replace('\\', '/') }}/src/conda_patches/0001-Rename-and-replace-entrypoint-stub-exe.patch"
       - "{{ SRC_DIR | replace('\\', '/') }}/src/conda_patches/0002-Manipulate-PATH-directly-instead-of-_call_ing-conda.patch"
-      - "{{ SRC_DIR | replace('\\', '/') }}/src/conda_patches/0003-Return-unknown-module-in-deprecations.patch"
 
   - url: https://github.com/conda/constructor/archive/{{ constructor_version }}.tar.gz  # [win]
-    sha256: 8483b2b4a4d136ce7d750a3f0d6eb964d5e6295436fab74c7d855ca70f9b6c33  # [win]
+    sha256: 0a0ca62e6bee9d6321f410ff88e24201de9d83bf38682d4911813c06b8a611a6  # [win]
     folder: constructor_src  # [win]
 
 build:
-  number: 0
+  number: 1
   ignore_run_exports:
     - '*'
 
 requirements:
   build:
+    - {{ stdlib('c') }}  # [osx and x86_64]
     - pyinstaller
     - python ={{ python_version }}
-    - conda ={{ conda_version }}
+    - conda ={{ version }}
     - conda-package-handling >=1.6
-    - menuinst >=1.4.18,<2.0a0  # [win]
+    - menuinst >={{ menuinst_lower_bound }}
     - conda-libmamba-solver ={{ conda_libmamba_solver_version }}
     - libmambapy ={{ libmambapy_version }}
+    - archspec >=0.2.3
   run_constrained:
     - constructor >={{ constructor_version }}
 
 test:
   requires:
     - pytest
+    - menuinst >={{ menuinst_lower_bound }}
   source_files:
     - tests
   commands:
     - pytest -vv
+    - test ! -f {{ PREFIX }}/bin/codesign  # [osx]
 
 about:
   home: https://github.com/conda/conda-standalone
